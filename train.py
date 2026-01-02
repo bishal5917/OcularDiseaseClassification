@@ -6,7 +6,9 @@ import os
 
 from model import VisionTransformer
 from tqdm.auto import tqdm
-from data import train_loader, val_loader, test_loader
+from data import train_loader, val_loader
+from plot import plot_loss, plot_accuracy
+
 
 def train_model(model, device, loader, optimizer, criterion):
     # setting into training mode
@@ -34,18 +36,21 @@ def train_model(model, device, loader, optimizer, criterion):
 
     return total_loss / len(loader), correct / len(loader)
 
-def evaluate_model(model, device, loader):
+def evaluate_model(model, device, loader, criterion):
     # setting into evaluation mode
     model.eval()
-    correct = 0
+    total_loss, correct = 0, 0
 
     with torch.inference_mode():
         for x, y in loader:
             x, y = x.to(device), y.to(device)
             output = model(x)
+            loss = criterion(output, y)
+
+            total_loss += loss.item() * x.size(0)
             correct += (output.argmax(1) == y).sum().item()
 
-    return correct / len(loader)
+    return total_loss / len(loader), correct / len(loader)
 
 def train():
     # setting the hyperparameters
@@ -90,19 +95,27 @@ def train():
 
     train_accuracies = []
     val_accuracies = []
+    train_losses = []
+    val_losses = []
 
     best_val_accuracy = 0
 
     for epoch in tqdm(range(EPOCHS)):
         train_loss, train_accuracy = train_model(model, device, train_loader, optimizer, criterion)
-        val_accuracy = evaluate_model(model, device, val_loader)
+        val_loss, val_accuracy = evaluate_model(model, device, val_loader, criterion)
+
         train_accuracies.append(train_accuracy)
         val_accuracies.append(val_accuracy)
+
+        train_losses.append(train_loss)
+        val_losses.append(val_loss)
+
         print(f"""
         Epoch {epoch + 1}/{EPOCHS}
         Train Accuracy: {train_accuracy:.4f}
         Train Loss: {train_loss:.4f}
-        Val Accuracy: {val_accuracy:.4f}
+        Validation Accuracy: {val_accuracy:.4f}
+        Validation Loss: {val_loss:.4f}
 
         ----------------------------------------
         """)
@@ -112,5 +125,9 @@ def train():
             if not os.path.exists('models'):
                 os.makedirs('models')
             torch.save(model.state_dict(), f"models/ViT_model.pth")
+
+    # plotting the curves
+    plot_accuracy(train_accuracies, val_accuracies)
+    plot_loss(train_losses, val_losses)
 
 train()
