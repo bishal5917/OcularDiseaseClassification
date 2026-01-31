@@ -2,7 +2,7 @@ import sys
 
 import torch
 import random
-from model import VisionTransformer
+from ViT_model import VisionTransformer
 from data import test_loader
 from plot import plot_predictions
 

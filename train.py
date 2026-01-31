@@ -4,7 +4,7 @@ import torch.optim as optim
 import random
 import os
 
-from model import VisionTransformer
+from ViT_model import VisionTransformer
 from tqdm.auto import tqdm
 from data import train_loader, val_loader
 from plot import plot_loss, plot_accuracy
