@@ -48,36 +48,36 @@ def unnormalize(img_tensor, mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225
     return img
 
 
-def plot_loss(train_losses, validation_losses):
+def plot_loss(train_losses, validation_losses, model_name):
     plt.figure(figsize=(15, 5))
     plt.plot(train_losses, label="Train Loss")
     plt.plot(validation_losses, label="Validation Loss")
 
     plt.gca().set_xlabel("Epoch")
     plt.gca().set_ylabel("Loss")
-    plt.gca().set_title(f"Loss Plot")
+    plt.gca().set_title(f"{model_name} Loss Plot")
 
     plt.legend()
 
     if not os.path.exists('plots'):
         os.makedirs('plots')
-    plt.savefig(f'plots/loss_plot.png')
+    plt.savefig(f'plots/{model_name}_loss_plot.png')
     # plt.show()
 
-def plot_accuracy(train_accuracies, validation_accuracies):
+def plot_accuracy(train_accuracies, validation_accuracies, model_name):
     plt.figure(figsize=(15, 5))
     plt.plot(train_accuracies, label="Train Accuracy")
     plt.plot(validation_accuracies, label="Validation Accuracy")
 
     plt.gca().set_xlabel("Epoch")
     plt.gca().set_ylabel("Accuracy")
-    plt.gca().set_title(f"Accuracy Plot")
+    plt.gca().set_title(f"{model_name} Accuracy Plot")
 
     plt.legend()
 
     if not os.path.exists('plots'):
         os.makedirs('plots')
-    plt.savefig(f'plots/accuracy_plot.png')
+    plt.savefig(f'plots/{model_name}_accuracy_plot.png')
     # plt.show()
 
 

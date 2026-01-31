@@ -9,6 +9,8 @@ from tqdm.auto import tqdm
 from data import train_loader, val_loader
 from plot import plot_loss, plot_accuracy
 
+from ResNet_model import ResNet50, ResNet101, ResNet152
+
 
 def train_model(model, device, loader, optimizer, criterion):
     # setting into training mode
@@ -34,7 +36,7 @@ def train_model(model, device, loader, optimizer, criterion):
         total_loss += loss.item() * x.size(0)
         correct += (output.argmax(1) == y).sum().item()
 
-    return total_loss / len(loader), correct / len(loader)
+    return total_loss / len(loader.dataset), correct / len(loader.dataset)
 
 def evaluate_model(model, device, loader, criterion):
     # setting into evaluation mode
@@ -50,12 +52,15 @@ def evaluate_model(model, device, loader, criterion):
             total_loss += loss.item() * x.size(0)
             correct += (output.argmax(1) == y).sum().item()
 
-    return total_loss / len(loader), correct / len(loader)
+    return total_loss / len(loader.dataset), correct / len(loader.dataset)
 
-def train():
+def train(model_name = "ViT"):
     # setting the hyperparameters
     EPOCHS = 20
-    LEARNING_RATE = 1e-3
+    if model_name == "ViT":
+        LEARNING_RATE = 1e-3
+    else:
+        LEARNING_RATE = 1e-4
     PATCH_SIZE = 16
     IMAGE_SIZE = 224
     CHANNELS = 3
@@ -76,11 +81,24 @@ def train():
     torch.cuda.manual_seed(42)
     random.seed(42)
 
-    print(f"---------- Training Model ----------")
+    print(f"---------- Training Model {model_name} ----------")
 
     # Instantiate the model
-    model = VisionTransformer(IMAGE_SIZE, PATCH_SIZE, CHANNELS, NUM_CLASSES,
+    if model_name == "ViT":
+        model = VisionTransformer(IMAGE_SIZE, PATCH_SIZE, CHANNELS, NUM_CLASSES,
                               EMBED_DIM, DEPTH, NUM_HEADS, MLP_DIM, DROPOUT_RATE)
+
+    elif model_name == "ResNet50":
+        model = ResNet50(img_channels=CHANNELS, num_classes=NUM_CLASSES)
+
+    elif model_name == "ResNet101":
+        model = ResNet101(img_channels=CHANNELS, num_classes=NUM_CLASSES)
+
+    elif model_name == "ResNet152":
+        model = ResNet152(img_channels=CHANNELS, num_classes=NUM_CLASSES)
+
+    else:
+        raise ValueError("Invalid model name")
 
     print(model)
 
@@ -111,6 +129,7 @@ def train():
         val_losses.append(val_loss)
 
         print(f"""
+        Model: {model_name}
         Epoch {epoch + 1}/{EPOCHS}
         Train Accuracy: {train_accuracy:.4f}
         Train Loss: {train_loss:.4f}
@@ -124,10 +143,14 @@ def train():
             best_val_accuracy = val_accuracy
             if not os.path.exists('models'):
                 os.makedirs('models')
-            torch.save(model.state_dict(), f"models/ViT_model.pth")
+            torch.save(model.state_dict(), f"models/{model_name}_model.pth")
 
     # plotting the curves
-    plot_accuracy(train_accuracies, val_accuracies)
-    plot_loss(train_losses, val_losses)
+    plot_accuracy(train_accuracies, val_accuracies, model_name)
+    plot_loss(train_losses, val_losses, model_name)
 
-train()
+
+train(model_name="ViT")
+train(model_name="ResNet50")
+train(model_name="ResNet101")
+train(model_name="ResNet152")
