@@ -5,30 +5,51 @@ import random
 from ViT_model import VisionTransformer
 from data import test_loader
 from plot import plot_predictions
+from ResNet_model import ResNet50, ResNet101, ResNet152
 
-def test():
-    model_path = f'models/ViT_model.pth'
-    CLASS_NAMES = ['amd', 'cataract', 'diabetes', 'normal']
+def load_model(model_type, device):
+    model_path = f'models/{model_type}_model.pth'
 
-    PATCH_SIZE = 16
-    IMAGE_SIZE = 224
-    CHANNELS = 3
     NUM_CLASSES = 4
-    EMBED_DIM = 128
-    NUM_HEADS = 8
-    DEPTH = 6
-    MLP_DIM = 256
-    DROPOUT_RATE = 0.5
 
+    # Instantiate models
+    if model_type == "ViT":
+        PATCH_SIZE = 16
+        IMAGE_SIZE = 224
+        CHANNELS = 3
+        NUM_CLASSES = 4
+        EMBED_DIM = 128
+        NUM_HEADS = 8
+        DEPTH = 6
+        MLP_DIM = 256
+        DROPOUT_RATE = 0.5
+
+        model = VisionTransformer(IMAGE_SIZE, PATCH_SIZE, CHANNELS, NUM_CLASSES,
+                                  EMBED_DIM, DEPTH, NUM_HEADS, MLP_DIM, DROPOUT_RATE)
+
+    elif model_type == "ResNet50":
+        model = ResNet50(img_channels=3, num_classes=NUM_CLASSES)
+
+    elif model_type == "ResNet101":
+        model = ResNet101(img_channels=3, num_classes=NUM_CLASSES)
+
+    elif model_type == "ResNet152":
+        model = ResNet152(img_channels=3, num_classes=NUM_CLASSES)
+
+    else:
+        raise ValueError("Invalid model type")
+
+    model.load_state_dict(torch.load(model_path, map_location=device))
+    model.to(device)
+    model.eval()
+    return model
+
+def test(model_type="ViT"):
+    CLASS_NAMES = ['amd', 'cataract', 'diabetes', 'normal']
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    print(f"---------- Testing Model ----------")
-
-    # Instantiate model
-    model = VisionTransformer(IMAGE_SIZE, PATCH_SIZE, CHANNELS, NUM_CLASSES,
-                              EMBED_DIM, DEPTH, NUM_HEADS, MLP_DIM, DROPOUT_RATE).to(device)
-    model.load_state_dict(torch.load(model_path, map_location=device))
-    model.eval()
+    print(f"\n---------- Testing {model_type.upper()} Model ----------")
+    model = load_model(model_type, device)
 
     # Get dataset from test_loader
     test_dataset = test_loader.dataset
@@ -77,12 +98,17 @@ def test():
     # sys.exit()
     # Plot predictions using matplotlib
     plot_predictions(
+        model_name=model_type,
         images=all_images,
         true_labels=all_labels,
         predicted_labels=all_predictions,
         class_names=CLASS_NAMES,
-        save_plot=False,
-        show_plot=True,
+        save_plot=True,
+        show_plot=False,
     )
 
-test()
+
+test(model_type="ViT")
+test(model_type="ResNet50")
+test(model_type="ResNet101")
+test(model_type="ResNet152")

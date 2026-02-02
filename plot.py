@@ -2,7 +2,7 @@
 import os
 import matplotlib.pyplot as plt
 
-def plot_predictions(images, true_labels, predicted_labels, class_names, show_plot=False, save_plot=True):
+def plot_predictions(model_name, images, true_labels, predicted_labels, class_names, show_plot=False, save_plot=True):
     grid_size = (2, 2)
     rows, cols = grid_size
     num_samples = len(images)
@@ -23,14 +23,14 @@ def plot_predictions(images, true_labels, predicted_labels, class_names, show_pl
             ax.set_title(f"TRUE: {true_cls}   PREDICTED: {pred_cls}", color=color, fontsize=24)
         ax.axis("off")  # hide unused axes or axis lines
 
-    plt.suptitle(f"Classification Results", fontsize=16)
+    plt.suptitle(f"{model_name} Classification Results", fontsize=16)
     plt.tight_layout()
     plt.subplots_adjust(top=0.88)
 
     if save_plot:
         if not os.path.exists('results'):
             os.makedirs('results')
-        plt.savefig(f'results/prediction.png')
+        plt.savefig(f'results/{model_name}_prediction.png')
 
     if show_plot:
         plt.show()
